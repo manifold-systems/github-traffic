@@ -1,0 +1,48 @@
+{
+  "title": "Clone Traffic",
+  "description": "Clone Traffic",
+  "type": "object",
+  "properties": {
+    "count": {
+      "type": "integer",
+      "examples": [
+        173
+      ]
+    },
+    "uniques": {
+      "type": "integer",
+      "examples": [
+        128
+      ]
+    },
+    "clones": {
+      "type": "array",
+      "items": {
+        "title": "Traffic",
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "uniques": {
+            "type": "integer"
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "timestamp",
+          "uniques",
+          "count"
+        ]
+      }
+    }
+  },
+  "required": [
+    "uniques",
+    "count",
+    "clones"
+  ]
+}

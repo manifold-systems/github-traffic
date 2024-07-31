@@ -1,0 +1,40 @@
+{
+  "type": "array",
+  "items": {
+    "title": "Content Traffic",
+    "description": "Content Traffic",
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "examples": [
+          "/github/hubot"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "examples": [
+          "github/hubot: A customizable life embetterment robot."
+        ]
+      },
+      "count": {
+        "type": "integer",
+        "examples": [
+          3542
+        ]
+      },
+      "uniques": {
+        "type": "integer",
+        "examples": [
+          2225
+        ]
+      }
+    },
+    "required": [
+      "path",
+      "title",
+      "uniques",
+      "count"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "type": "array",
+  "items": {
+    "title": "Referrer Traffic",
+    "description": "Referrer Traffic",
+    "type": "object",
+    "properties": {
+      "referrer": {
+        "type": "string",
+        "examples": [
+          "Google"
+        ]
+      },
+      "count": {
+        "type": "integer",
+        "examples": [
+          4
+        ]
+      },
+      "uniques": {
+        "type": "integer",
+        "examples": [
+          3
+        ]
+      }
+    },
+    "required": [
+      "referrer",
+      "uniques",
+      "count"
+    ]
+  }
+}

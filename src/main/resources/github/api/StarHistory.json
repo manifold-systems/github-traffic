@@ -1,0 +1,19 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "count": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "timestamp",
+      "count"
+    ]
+  }
+}
