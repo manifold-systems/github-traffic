@@ -57,7 +57,7 @@ public class Tile {
     public void append(Tile tile) {
         if (_layout == Manual) {
             throw new RuntimeException("Append not allowed in '$_layout' layout, " +
-                    "use x,y coordinates with add(), or use a different layout");
+                                       "use x,y coordinates with add(), or use a different layout");
         }
         _layout.append(this, tile);
     }
@@ -73,7 +73,7 @@ public class Tile {
     public void add(int x, int y, Tile tile) {
         if (_layout != Manual) {
             throw new RuntimeException("x,y positioning not allowed in '$_layout' layout, " +
-                    "use append() instead, or use a different layout");
+                                       "use append() instead, or use a different layout");
         }
         _add(x, y, tile);
     }
@@ -134,8 +134,8 @@ public class Tile {
     }
 
     private static void removeTerminatingNewline(StringBuilder result) {
-        if( !result.isEmpty() && result.charAt(result.length()-1) == '\n') {
-            result.deleteCharAt(result.length()-1);
+        if (result.length() != 0 && result.charAt(result.length() - 1) == '\n') {
+            result.deleteCharAt(result.length() - 1);
         }
     }
 
@@ -168,7 +168,7 @@ public class Tile {
     }
 
     private String spaces(int n) {
-        return n <= 0 ? "" : " ".repeat( n );
+        return n <= 0 ? "" : " ".repeat(n);
     }
 
     /**
@@ -194,22 +194,22 @@ public class Tile {
     }
 
     private int childWidth() {
-        if( _nest.isEmpty() ) {
+        if (_nest.isEmpty()) {
             return 0;
         }
         int width = 0;
-        for(Tile child: _nest) {
-           width = Math.max(width, child._x + child.width());
+        for (Tile child : _nest) {
+            width = Math.max(width, child._x + child.width());
         }
         return width;
     }
 
     private int childHeight() {
-        if( _nest.isEmpty() ) {
+        if (_nest.isEmpty()) {
             return 0;
         }
         int height = 0;
-        for(Tile child: _nest) {
+        for (Tile child : _nest) {
             height = Math.max(height, child._y + child.height());
         }
         return height;
@@ -238,7 +238,18 @@ public class Tile {
         abstract void append(Tile parent, Tile child);
     }
 
-    public record Margin(int top, int left, int bottom, int right) {
+    public static class Margin {
         static final Margin Empty = new Margin(0, 0, 0, 0);
+        private final int top;
+        private final int left;
+        private final int bottom;
+        private final int right;
+
+        public Margin(int top, int left, int bottom, int right) {
+            this.top = top;
+            this.left = left;
+            this.bottom = bottom;
+            this.right = right;
+        }
     }
 }

@@ -9,7 +9,7 @@ import manifold.rt.api.util.StreamUtil;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -21,9 +21,9 @@ import static manifold.github.traffic.AnsiColor.*;
 
 /**
  * A CLI utility to report GitHub traffic similar to the GitHub website, but with additional features such as
- * display of added/removed stars between runs and identifying users who starred or <i>unstarred</i> your repo.
+ * added/removed stars between runs including identification of users who <i>unstarred</i> the repo.
  */
-@SuppressWarnings({"StringConcatenationInsideStringBufferAppend", "MalformedFormatString"})
+@SuppressWarnings({"StringConcatenationInsideStringBufferAppend", "MalformedFormatString", "unchecked"})
 public class Traffic {
     private static final String HEAVY_BLOCK = "▓";
     private static final String LIGHT_BLOCK = "░";
@@ -39,24 +39,25 @@ public class Traffic {
     private final String _repo;
     private final String _token;
     private final int _days;
+    private final StringBuilder _content;
 
     Traffic(Map<Arg, String> processedArgs) {
         _user = processedArgs.get(Arg.user);
         _repo = processedArgs.get(Arg.repo);
         _token = processedArgs.get(Arg.token);
         _days = Integer.parseInt(processedArgs.get(Arg.days));
+        _content = new StringBuilder();
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    String report() throws IOException, InterruptedException {
-        AnsiColor.colorize();
-        System.out.println();
-        System.out.println(makeHeader());
-        System.out.println();
-        System.out.println(showStats());
-        System.out.println();
-        System.out.println("$_days-day summary$DKGREY (UTC time)$RESET");
-        System.out.println();
+    void report() throws IOException, InterruptedException {
+        println();
+        println(makeHeader());
+        println();
+        println(showStats());
+        println();
+        println("$_days-day summary$DKGREY (UTC time)$RESET");
+        println();
         Tile root = new Tile(Tile.Layout.Column, Tile.Margin.Empty);
         Tile topCharts = new Tile(Tile.Layout.Row, Tile.Margin.Empty);
         topCharts.append(makePageViews(), new Tile.Margin(0, 0, 0, 4));
@@ -69,11 +70,18 @@ public class Traffic {
             root.append(bottomCharts);
         }
         String report = root.render();
-        System.out.println(report);
-        StringBuilder sb = new StringBuilder();
+        println(report);
         String diff = showStargazerDiff();
-        sb.append(report).append(diff);
-        return sb.toString();
+        println(diff);
+    }
+
+    private void println(String... data) {
+        for (String s: data) {
+            _content.append(s);
+            System.out.print(s);
+        }
+        _content.append('\n');
+        System.out.println();
     }
 
     private String makeHeader() {
@@ -112,13 +120,15 @@ public class Traffic {
 
     private auto readStarHistory() throws IOException {
         int prevStars = -1;
+        //noinspection UnusedAssignment
         StarHistory starHistory = null;
         File starHistoryFile = new File(getAppDirectory(), STAR_HISTORY_FILE);
         if (starHistoryFile.isFile()) {
             try (FileReader reader = new FileReader(starHistoryFile)) {
                 starHistory = StarHistory.load().fromJsonReader(reader);
                 if (!starHistory.isEmpty()) {
-                    prevStars = starHistory.getLast().getCount();
+                    //noinspection UnusedAssignment
+                    prevStars = starHistory.last().getCount();
                 }
             }
         }
@@ -131,7 +141,7 @@ public class Traffic {
             starHistory = StarHistory.create();
             starHistory.add(StarHistoryItem.create(todayWithTime, stars));
         } else {
-            StarHistoryItem last = starHistory.getLast();
+            StarHistoryItem last = starHistory.last();
             if (last.getTimestamp().toLocalDate().isEqual(todayWithTime.toLocalDate())) {
                 // update today's count (maintain one count per day)
                 last.setTimestamp(todayWithTime);
@@ -202,7 +212,8 @@ public class Traffic {
         return sb.toString();
     }
 
-    private void makePathUrlBar(StringBuilder sb, String url, String color, int maxUniques, int maxCount, int maxUrl, int uniques, int count) {
+    private void makePathUrlBar(StringBuilder sb, String url, @SuppressWarnings("SameParameterValue") String color,
+                                int maxUniques, int maxCount, int maxUrl, int uniques, int count) {
         url = clipUrl(url, maxUrl);
         int uniquesWidth = String.valueOf(maxUniques).length();
         double factorUniques = (double) MAX_UNIQUE_URL_BAR / maxUniques;
@@ -309,7 +320,7 @@ public class Traffic {
                 prev = StreamUtil.getContent(readerPrev);
             }
             Files.copy(stargazersFile.toPath(),
-                    Path.of(getAppDirectory().getAbsolutePath(), "stargazers_prior.txt"), REPLACE_EXISTING);
+                    Paths.get(getAppDirectory().getAbsolutePath(), "stargazers_prior.txt"), REPLACE_EXISTING);
             StringTokenizer tokPrev = new StringTokenizer(prev, "\n");
             Set<String> prevGazers = new HashSet<>();
             int prevPos = 0;
@@ -334,7 +345,6 @@ public class Traffic {
                 parent.append(makeGazersList(lost, "Lost stars", "-", RED));
             }
             result = parent.render();
-            System.out.println(result);
         }
         //noinspection ResultOfMethodCallIgnored
         getAppDirectory().mkdirs();
@@ -355,7 +365,7 @@ public class Traffic {
         do {
             page++;
             onePage = getOne(Stargazers.request("https://api.github.com/repos/$_user/$_repo/stargazers?per_page=$pageSize&page=$page"));
-            for (var item : onePage.asOption0()) {
+            for (auto item : onePage.asOption0()) {
                 String gazer = item.getLogin();
                 nowGazers.add(gazer);
             }
@@ -391,10 +401,20 @@ public class Traffic {
     }
 
     private <T> T getOne(Requester<T> requester) {
-        return requester
-                .withHeader("X-GitHub-Api-Version", "2022-11-28")
-                .withBearerAuthorization(_token)
-                .getOne();
+        try {
+            return requester
+                    .withHeader("X-GitHub-Api-Version", "2022-11-28")
+                    .withBearerAuthorization(_token)
+                    .getOne();
+        } catch(RuntimeException e) {
+            if (e.getCause() instanceof IOException) {
+                if (e.getCause().getMessage().contains("HTTP response code: 401")) {
+                    throw new ReportedException("Unauthorized access for -token: $_token", e);
+                }
+                throw new ReportedException("-user and/or -repo not found: ${e.getCause().getMessage()}", e);
+            }
+            throw e;
+        }
     }
 
     private String clipUrl(String url, int maxUrl) {

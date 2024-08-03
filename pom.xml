@@ -2,136 +2,146 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>systems.manifold</groupId>
-  <artifactId>github-traffic</artifactId>
-  <version>0.1-SNAPSHOT</version>
+    <groupId>systems.manifold</groupId>
+    <artifactId>github-traffic</artifactId>
+    <version>0.1-SNAPSHOT</version>
 
-  <properties>
-    <manifold-version>2024.1.28-SNAPSHOT</manifold-version>
-<!-- Manifold supports JDK LTS versions 8 - 21 -->
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
-<!-- Set this option when source/target are older than the compiling JDK -->
-    <maven.compiler.release>21</maven.compiler.release>
-<!-- Use this if compiling with Java 9 or later and targeting an older Java version  -->
-<!-- <maven.compiler.release>6</maven.compiler.release> -->
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+    <properties>
+        <manifold-version>2024.1.29-SNAPSHOT</manifold-version>
+        <!-- Manifold supports JDK LTS versions 8 - 21 -->
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <!-- Set this option when source/target are older than the compiling JDK -->
+<!--        <maven.compiler.release>8</maven.compiler.release>-->
+        <!-- Use this if compiling with Java 9 or later and targeting an older Java version  -->
+        <!-- <maven.compiler.release>6</maven.compiler.release> -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
-  <dependencies>
-<!-- Add relevant manifold runtime dependencies, compile-time dependencies are listed in annotationProcessorPath- -->
-    <dependency>
-      <groupId>systems.manifold</groupId>
-      <artifactId>manifold-json-rt</artifactId>
-      <version>${manifold-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>systems.manifold</groupId>
-      <artifactId>manifold-tuple-rt</artifactId>
-      <version>${manifold-version}</version>
-    </dependency>
-      <dependency>
-          <groupId>org.fusesource.jansi</groupId>
-          <artifactId>jansi</artifactId>
-          <version>2.4.1</version>
-      </dependency>
-<!-- For testing -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+    <dependencies>
+        <!-- for type-safe JSON as github API -->
+        <dependency>
+            <groupId>systems.manifold</groupId>
+            <artifactId>manifold-json-rt</artifactId>
+            <version>${manifold-version}</version>
+        </dependency>
+        <!-- for tuples, multiple return values (see Traffic#readStarHistory) -->
+        <dependency>
+            <groupId>systems.manifold</groupId>
+            <artifactId>manifold-tuple-rt</artifactId>
+            <version>${manifold-version}</version>
+        </dependency>
+        <!-- for collection extension methods -->
+        <dependency>
+            <groupId>systems.manifold</groupId>
+            <artifactId>manifold-collections</artifactId>
+            <version>${manifold-version}</version>
+        </dependency>
+        <!-- for consistent color in various consoles -->
+        <dependency>
+            <groupId>org.fusesource.jansi</groupId>
+            <artifactId>jansi</artifactId>
+            <version>2.4.1</version>
+        </dependency>
+        <!-- for testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
-  <build>
-    <plugins>
+    <build>
+        <plugins>
 
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <configuration>
-                <archive>
-                    <manifest>
-                        <addClasspath>true</addClasspath>
-                        <mainClass>manifold.github.traffic.Main</mainClass>
-                    </manifest>
-                </archive>
-            </configuration>
-        </plugin>
+            <!-- make an executable jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>manifold.github.traffic.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
 
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>3.5.1</version>
-            <executions>
-                <execution>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>shade</goal>
-                    </goals>
-                    <configuration>
-                        <artifactSet>
-                            <excludes>
-                                <exclude>classworlds:classworlds</exclude>
-                                <exclude>junit:junit</exclude>
-                                <exclude>jmock:*</exclude>
-                                <exclude>*:xml-apis</exclude>
-                                <exclude>org.apache.maven:lib:tests</exclude>
-                                <exclude>log4j:log4j:jar:</exclude>
-                            </excludes>
-                        </artifactSet>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>classworlds:classworlds</exclude>
+                                    <exclude>junit:junit</exclude>
+                                    <exclude>jmock:*</exclude>
+                                    <exclude>*:xml-apis</exclude>
+                                    <exclude>org.apache.maven:lib:tests</exclude>
+                                    <exclude>log4j:log4j:jar:</exclude>
+                                </excludes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-      <!--
-       Configure the maven-compiler-plugin use Manifold.
-       - add the -Xplugin:Manifold argument for the javac compiler
-       - add compile-time manifold modules to javac -processorpath arg
-      -->
-       <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
+            <!--
+             Configure the javac to use Manifold.
+             - add the -Xplugin:Manifold argument for the javac compiler
+             - add compile-time manifold dependencies to annotationProcessorPaths
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
 
-          <!-- version 3.8.0+ is necessary to support Java 10+ -->
-          <version>3.8.0</version>
+                <!-- version 3.8.0+ is necessary to support Java 10+ -->
+                <version>3.8.0</version>
 
-          <configuration>
-            <fork>true</fork>
-<!--              <executable>${env.JAVA_HOME}/bin/javac.exe</executable>-->
-              <executable>C:/Program Files/Java/ea/openjdk-21/bin/javac.exe</executable>
-            <encoding>UTF-8</encoding>
-            <compilerArgs>
-              <!--Add the Manifold plugin-->
-              <arg>-Xplugin:Manifold</arg>
-              <arg>-J--add-opens=java.base/java.lang.reflect=ALL-UNNAMED</arg>
-            </compilerArgs>
+                <configuration>
+                    <fork>true</fork>
+                    <encoding>UTF-8</encoding>
+                    <compilerArgs>
+                        <!-- Add the Manifold plugin -->
+                        <arg>-Xplugin:Manifold</arg>
+                    </compilerArgs>
 
-            <!-- Add Manifold compile-time dependencies in the processor path -->
-            <annotationProcessorPaths>
-              <path>
-                <groupId>systems.manifold</groupId>
-                <artifactId>manifold-json</artifactId>
-                <version>${manifold-version}</version>
-              </path>
-              <path>
-                <groupId>systems.manifold</groupId>
-                <artifactId>manifold-tuple</artifactId>
-                <version>${manifold-version}</version>
-              </path>
-              <path>
-                <groupId>systems.manifold</groupId>
-                <artifactId>manifold-strings</artifactId>
-                <version>${manifold-version}</version>
-              </path>
-            </annotationProcessorPaths>
+                    <!-- Add Manifold compile-time dependencies in the processor path -->
+                    <annotationProcessorPaths>
+                        <!-- for type-safe JSON as github API -->
+                        <path>
+                            <groupId>systems.manifold</groupId>
+                            <artifactId>manifold-json</artifactId>
+                            <version>${manifold-version}</version>
+                        </path>
+                        <!-- for tuples, multiple return values (see Traffic#readStarHistory)-->
+                        <path>
+                            <groupId>systems.manifold</groupId>
+                            <artifactId>manifold-tuple</artifactId>
+                            <version>${manifold-version}</version>
+                        </path>
+                        <!-- for string templates/interpolation -->
+                        <path>
+                            <groupId>systems.manifold</groupId>
+                            <artifactId>manifold-strings</artifactId>
+                            <version>${manifold-version}</version>
+                        </path>
+                    </annotationProcessorPaths>
 
-          </configuration>
-        </plugin>
-    </plugins>
-  </build>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -1,13 +1,19 @@
 package manifold.github.traffic;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static manifold.github.traffic.AnsiColor.*;
 
 public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
+        AnsiColor.colorize();
         if (args.isNullOrEmpty()) {
             displayUsage();
             return;
@@ -18,21 +24,21 @@ public class Main {
         }
         try {
             new Traffic(processedArgs).report();
+        } catch (ReportedException e) {
+            showError(e.getMessage(), false);
         } catch (RuntimeException e) {
             Throwable cause = e.getCause();
             if (cause instanceof UnknownHostException) {
-                System.err.println("Unknown host: " + cause.getMessage() + ". Check internet connection.");
+                showError("Unknown host: ${cause.getMessage()}. Check internet connection.", false);
             } else {
-                throw e;
+                showError(e);
             }
         }
     }
 
     private static void displayUsage() {
         System.out.println();
-        System.out.println("Displays statistics for your github repository. Stats include stars,");
-        System.out.println("traffic, and more. Tracks changes in stars: deltas, who starred you,");
-        System.out.println("who unstarred you...\n");
+        System.out.println("Displays recent statistics for a specified github repository.\n");
         System.out.println(Arg.usage());
     }
 
@@ -68,7 +74,7 @@ public class Main {
         List<String> missingArgs = Arg.allRequired().stream()
                 .filter(arg -> !map.containsKey(arg))
                 .map(arg -> "\n  " + arg.getName() + "  '" + arg.getDescription() + "'")
-                .toList();
+                .collect(Collectors.toList());
         if( !missingArgs.isEmpty() ) {
             String errorMsg = missingArgs.stream().reduce("Error:  Missing required argument[s]:", String::concat);
             return showError(errorMsg);
@@ -77,9 +83,19 @@ public class Main {
         return map;
     }
 
+    private static void showError(Exception e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        showError(sw.toString());
+    }
     private static Map<Arg, String> showError(String x) {
-        System.out.println(x);
-        System.out.println(Arg.usage());
+        return showError(x, true);
+    }
+    private static Map<Arg, String> showError(String x, boolean showUsage ) {
+        System.out.println(RED + x + RESET);
+        if (showUsage) {
+            System.out.println(Arg.usage());
+        }
         return null;
     }
 

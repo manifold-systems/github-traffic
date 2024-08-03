@@ -1,12 +1,13 @@
 package manifold.github.traffic;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Progress bar to display while making a batch of remote calls.
  */
 public class Progress {
-    private static final List<String> PROGRESS_BAR = List.of(
+    private static final List<String> PROGRESS_BAR = Arrays.asList(
             "▓-----",
             "▓▓----",
             "▓▓▓---",

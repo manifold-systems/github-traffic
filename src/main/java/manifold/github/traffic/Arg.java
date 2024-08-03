@@ -41,7 +41,7 @@ public enum Arg {
         }
     },
     /**
-     * Number of days to display, default is 14
+     * (Optional) Number of days to display, default is 14
      */
     days("-days", false, false, "14", "Number of days to display. Values may range from 1..14. Default is 14.") {
         @Override
