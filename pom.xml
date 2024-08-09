@@ -10,15 +10,30 @@
 
     <properties>
         <manifold-version>2024.1.29-SNAPSHOT</manifold-version>
-        <!-- Manifold supports JDK LTS versions 8 - 21 -->
+        <!-- note, Manifold supports JDK LTS versions 8 - 21 -->
+        <!-- targeting Java 8 so this CLI project can run with most Java releases -->
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <!-- Set this option when source/target are older than the compiling JDK -->
-<!--        <maven.compiler.release>8</maven.compiler.release>-->
-        <!-- Use this if compiling with Java 9 or later and targeting an older Java version  -->
+        <!-- <maven.compiler.release>8</maven.compiler.release> -->
+        <!-- Use this if compiling with Java 11 or later and targeting an older Java version  -->
         <!-- <maven.compiler.release>6</maven.compiler.release> -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>jdk9+</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <properties>
+                <!-- define -release 8 only when compile with JDK 9+ -->
+                <!-- note, targeting Java 8 so this CLI project can run with most Java releases -->
+                <maven.compiler.release>8</maven.compiler.release>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencies>
         <!-- for type-safe JSON as github API -->

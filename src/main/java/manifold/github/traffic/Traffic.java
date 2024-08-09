@@ -10,18 +10,20 @@ import manifold.rt.api.util.StreamUtil;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static manifold.github.traffic.AnsiColor.*;
 
 /**
- * A CLI utility to report GitHub traffic similar to the GitHub website, but with additional features such as
- * added/removed stars between runs including identification of users who <i>unstarred</i> the repo.
+ * GitHub traffic CLI utility similar to the GitHub Traffic web page, but with additional features such as
+ * added/removed stars between runs including identification of users who <i>unstarred</i> the repo, and more.
  */
 @SuppressWarnings({"StringConcatenationInsideStringBufferAppend", "MalformedFormatString", "unchecked"})
 public class Traffic {
@@ -161,12 +163,12 @@ public class Traffic {
 
     private String makePageViews() {
         PageViews pageViews = getOne(PageViews.request("https://api.github.com/repos/$_user/$_repo/traffic/views"));
-        return makeCountsChart("Views", pageViews.getViews());
+        return makeCountsChart("Views", pageViews.getViews(), this::viewsPerUser);
     }
 
     private String makeClones() {
         RepoClones repoClones = getOne(RepoClones.request("https://api.github.com/repos/$_user/$_repo/traffic/clones"));
-        return makeCountsChart("Clones", repoClones.getClones());
+        return makeCountsChart("Clones", repoClones.getClones(), (u, t) -> "");
     }
 
     private String makePopularPaths() {
@@ -179,16 +181,16 @@ public class Traffic {
         return makePathsChart("Referring sites", MAX_REFERRER_URL, pr, item -> item.getReferrer());
     }
 
-    private String makeCountsChart(String title, List<? extends CountedItem> items) {
+    private String makeCountsChart(String title, List<? extends CountedItem> items, BiFunction<Integer, Integer, String> ratio) {
         auto totals = calcTotals(items);
         int digits = String.valueOf(totals.totalUniques).length();
         int width = digits + 1;
         double factor = (double) MAX_BAR_LEN / totals.maxCount;
         StringBuilder sb = new StringBuilder();
         sb.append("$title$DKGREY unique & total$RESET").append('\n');
-        sb.append(makeCountsChart(items, factor, width));
+        sb.append(makeCountsChart(items, factor, width, ratio));
         if (_days > 1) {
-            sb.append(makeTotalsBar(totals.totalUniques, totals.totalCount, factor, width)).append('\n');
+            sb.append(makeTotalsBar(totals.totalUniques, totals.totalCount, factor, width, ratio)).append('\n');
         }
         return sb.toString();
     }
@@ -226,7 +228,7 @@ public class Traffic {
                 .append(count).append('\n');
     }
 
-    private String makeTotalsBar(int totalUniques, int totalCount, double factor, int width) {
+    private String makeTotalsBar(int totalUniques, int totalCount, double factor, int width, BiFunction<Integer, Integer, String> ratio) {
         StringBuilder sb = new StringBuilder();
         sb.append("${DKGREY}Total:   $RESET");
         sb.append(String.format("%${width}d", totalUniques));
@@ -236,12 +238,12 @@ public class Traffic {
         int uniquesWidth = (int) Math.ceil((double) totalUniques * factor / _days);
         int totalCountWidth = (int) Math.ceil((double) totalCount * factor / _days) - uniquesWidth;
         //noinspection StringConcatenationInsideStringBufferAppend
-        sb.append(PURPLE + HEAVY_BLOCK.repeat(uniquesWidth) + LIGHT_BLOCK.repeat(totalCountWidth) + RESET);
-        sb.append(totalCount);
+        sb.append(PURPLE + HEAVY_BLOCK.repeat(uniquesWidth) + LIGHT_BLOCK.repeat(totalCountWidth) + RESET + totalCount +
+                  " " + DKGREY + ratio.apply(totalUniques, totalCount) + RESET );
         return sb.toString();
     }
 
-    private String makeCountsChart(List<? extends CountedItem> cloneItems, double factor, int width) {
+    private String makeCountsChart(List<? extends CountedItem> cloneItems, double factor, int width, BiFunction<Integer, Integer, String> showRatio) {
         StringBuilder clonesChart = new StringBuilder();
         DateTimeFormatter dayMonthFormat = DateTimeFormatter.ofPattern("dd MMM");
         DateTimeFormatter dayOfWeekFormat = DateTimeFormatter.ofPattern("EEEEE");
@@ -275,7 +277,7 @@ public class Traffic {
             bars.add(DKGREY + '(' + dayMonthFormat.format(timestamp) + ')' + dayOfWeekFormat.format(timestamp) + RESET +
                     String.format("%${width}d", item.getUniques()) +
                     color + HEAVY_BLOCK.repeat(uniquesWidth) + LIGHT_BLOCK.repeat(countWidth) + RESET +
-                    item.getCount() + "\n");
+                    item.getCount() + " " + DKGREY + showRatio.apply(item.getUniques(), item.getCount()) + RESET + "\n");
         }
         while (csrDate.isBefore(now) || csrDate.isEqual(now)) {
             bars.add(DKGREY + '(' + dayMonthFormat.format(csrDate) + ')' + dayOfWeekFormat.format(csrDate) +
@@ -284,6 +286,11 @@ public class Traffic {
         }
         bars.reversed().forEach(clonesChart::append);
         return clonesChart.toString();
+    }
+
+    private String viewsPerUser(int uniques, int total) {
+        DecimalFormat value = new DecimalFormat("##.#");
+        return value.format((double) total / uniques);
     }
 
     private auto calcTotals(List<?> clones) {
@@ -357,22 +364,27 @@ public class Traffic {
     }
 
     private LinkedHashSet<String> fetchStargazers() throws InterruptedException {
-        int page = 0;
-        int pageSize = 100; // max
-        LinkedHashSet<String> nowGazers = new LinkedHashSet<>();
-        Stargazers onePage;
         Progress progress = new Progress("Fetching stargazers...");
-        do {
-            page++;
-            onePage = getOne(Stargazers.request("https://api.github.com/repos/$_user/$_repo/stargazers?per_page=$pageSize&page=$page"));
-            for (auto item : onePage.asOption0()) {
-                String gazer = item.getLogin();
-                nowGazers.add(gazer);
-            }
+        LinkedHashSet<String> nowGazers = new LinkedHashSet<>();
+        Thread thread = new Thread(() -> {
+            Stargazers onePage;
+            int page = 0;
+            int pageSize = 100; // max
+            do {
+                page++;
+                onePage = getOne(Stargazers.request("https://api.github.com/repos/$_user/$_repo/stargazers?per_page=$pageSize&page=$page"));
+                for (auto item : onePage.asOption0()) {
+                    String gazer = item.getLogin();
+                    nowGazers.add(gazer);
+                }
+            } while (!onePage.asOption0().isEmpty());
+        });
+        thread.start();
+        while(thread.isAlive()) {
             progress.bumpProgress();
             //noinspection BusyWait
-            Thread.sleep(50);
-        } while (!onePage.asOption0().isEmpty());
+            Thread.sleep(250);
+        }
         progress.clearProgress();
         return nowGazers;
     }
