@@ -2,7 +2,7 @@
 
 Use this command line interface (CLI) tool to produce a textual GitHub traffic report for any repository. The report is
 similar in format to GitHub's Traffic page, but includes additional features such as star diffs between usages, who
-starred/unstarred the repo, and unique view ratio per top views. See the example below. 
+starred/unstarred the repo, and unique view ratio per top views. See the example below.
 
 # Build
   
@@ -40,7 +40,7 @@ traffic -user joeuser -repo joeswidget -token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 `-repo`: Github repository name
 
-`-token`: Github authorization token
+`-token`: Github [authentication token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 
 #### Optional parameters:
 
