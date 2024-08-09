@@ -1,8 +1,8 @@
 # GitHub traffic CLI
 
 Use this command line interface (CLI) tool to produce a textual GitHub traffic report for any repository. The report is
-similar in format to GitHub's Traffic page, but with includes additional features such as star diffs between usages, who
-starred/unstarred the repo, unique view ratio per top views. See the example below. 
+similar in format to GitHub's Traffic page, but includes additional features such as star diffs between usages, who
+starred/unstarred the repo, and unique view ratio per top views. See the example below. 
 
 # Build
   
