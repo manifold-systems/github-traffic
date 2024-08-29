@@ -20,7 +20,7 @@ public class AnsiColor {
     private static boolean isRunningIntelliJConsole() {
         List<String> values = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments();
         for (String value : values) {
-            if (value.contains("JetBrains")) {
+            if (value.toLowerCase().contains("jetbrains")) {
                 // crude check for running in IntelliJ console, which supports ansi color
                 return true;
             }
