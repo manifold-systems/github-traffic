@@ -293,17 +293,17 @@ public class Traffic {
         return value.format((double) total / uniques);
     }
 
-    private auto calcTotals(List<?> clones) {
+    private auto calcTotals(List<?> countedItems) {
         int totalUniques = 0;
         int totalCount = 0;
         int maxCount = 0;
-        int size = clones.size();
+        int size = countedItems.size();
         LocalDate csrDate = today().minusDays(_days - 1);
         for (int i = 0; i < size; i++) {
             if (size - i > _days) {
                 continue;
             }
-            CountedItem item = (CountedItem) clones.get(i);
+            CountedItem item = (CountedItem) countedItems.get(i);
             LocalDate timestamp = item.getTimestamp().toLocalDate();
             if (timestamp.isBefore(csrDate)) {
                 continue;
