@@ -461,9 +461,8 @@ public class Traffic {
 
     private File getAppDirectory() {
         File appDir = new File(new File(System.getProperty("user.home"), "github-traffic"), "$_user${File.separator}$_repo");
-        if( !appDir.mkdirs() && !appDir.isDirectory() )
-        {
-          throw new RuntimeException("Could not create directory: $appDir");
+        if (!appDir.mkdirs() && !appDir.isDirectory()) {
+            throw new RuntimeException("Could not create directory: $appDir");
         }
         return appDir;
     }
