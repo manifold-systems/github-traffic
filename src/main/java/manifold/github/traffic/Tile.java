@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static manifold.github.traffic.Tile.Layout.*;
+import static manifold.github.traffic.Tile.Margin.Empty;
 
 /**
  * Tile simplifies rendering blocks of text similar to a newspaper or magazine layout. It is designed with console use
@@ -23,35 +24,19 @@ public class Tile {
     private int _x; // horizontal offset within parent
     private int _y; // vertical offset within parent
 
-    public Tile() {
-        this(Manual, Margin.Empty);
-    }
-
-    public Tile(String content) {
-        this(content, Manual, Margin.Empty);
-    }
-
-    public Tile(Layout layout, Margin margin) {
-        this("", layout, margin);
-    }
-
-    public Tile(String content, Margin margin) {
-        this(content, Manual, margin);
-    }
-
-    public Tile(String content, Layout layout, Margin margin) {
+    public Tile(String content = "", Layout layout = Manual, Margin margin = Empty) {
         _lines = content.lines().toList();
-        _nest = new ArrayList<>();
         _layout = layout;
         _margin = margin;
+        _nest = new ArrayList<>();
     }
 
     public void append(String content) {
-        append(content, Margin.Empty);
+        append(content, Empty);
     }
 
     public void append(String content, Margin margin) {
-        append(new Tile(content, Manual, margin));
+        append(new Tile(content, margin:margin));
     }
 
     public void append(Tile tile) {
@@ -63,11 +48,11 @@ public class Tile {
     }
 
     public void add(int x, int y, String content) {
-        add(x, y, new Tile(content, Manual, Margin.Empty));
+        add(x, y, new Tile(content));
     }
 
     public void add(int x, int y, String tile, Margin margin) {
-        add(x, y, new Tile(tile, Manual, margin));
+        add(x, y, new Tile(tile, margin:margin));
     }
 
     public void add(int x, int y, Tile tile) {
@@ -141,7 +126,7 @@ public class Tile {
 
     private String includeMargin(String result) {
         List<String> lines = new ArrayList<>(result.lines().toList());
-        if (lines.isEmpty() || _margin.equals(Margin.Empty)) {
+        if (lines.isEmpty() || _margin.equals(Empty)) {
             return result;
         }
         int maxLength = length(lines.stream().max(Comparator.comparingInt(this::length)).get());

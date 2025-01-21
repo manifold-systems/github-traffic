@@ -11,7 +11,7 @@ public enum Arg {
     /**
      * Github user name
      */
-    user("-user", true, false, null, "Github user/org name") {
+    user("-user", "Github user/org name") {
         @Override
         public void validate(String value) {
             if (value == null || value.isEmpty()) {
@@ -23,7 +23,7 @@ public enum Arg {
     /**
      * Github repository name
      */
-    repo("-repo", true, false, null, "Github repository name") {
+    repo("-repo", "Github repository name") {
         @Override
         public void validate(String value) {
             if (value == null || value.isEmpty()) {
@@ -35,7 +35,7 @@ public enum Arg {
     /**
      * Github authorization token
      */
-    token("-token", true, false, null, "Github authorization token") {
+    token("-token", "Github authorization token") {
         @Override
         public void validate(String value) {
         }
@@ -43,7 +43,7 @@ public enum Arg {
     /**
      * (Optional) Number of days to display, default is 14
      */
-    days("-days", false, false, "14", "Number of days to display. Values may range from 1..14. Default is 14.") {
+    days(name:"-days", description:"Number of days to display. Values may range from 1..14. Default is 14.", required:false, defaultValue:"14") {
         @Override
         public void validate(String value) {
             int days = Integer.parseInt(value);
@@ -60,7 +60,7 @@ public enum Arg {
     private final String _description;
     private final String _defaultValue;
 
-    Arg(String name, boolean required, boolean isFlag, String defaultValue, String description) {
+    Arg(String name, String description, boolean required = true, boolean isFlag = false, String defaultValue = null) {
         _name = name;
         _required = required;
         _isFlag = isFlag;

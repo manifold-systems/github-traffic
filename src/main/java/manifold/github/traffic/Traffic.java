@@ -4,6 +4,7 @@ import github.api.*;
 import github.api.StarHistory.StarHistoryItem;
 import manifold.ext.rt.api.Structural;
 import manifold.ext.rt.api.auto;
+import manifold.github.traffic.Tile.Margin;
 import manifold.json.rt.api.Requester;
 import manifold.rt.api.util.StreamUtil;
 
@@ -20,6 +21,9 @@ import java.util.function.Function;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static manifold.github.traffic.AnsiColor.*;
+import static manifold.github.traffic.Tile.Layout.Column;
+import static manifold.github.traffic.Tile.Layout.Row;
+import static manifold.github.traffic.Tile.Margin.Empty;
 
 /**
  * GitHub traffic CLI utility similar to the GitHub Traffic web page, but with additional features such as
@@ -60,14 +64,14 @@ public class Traffic {
         println();
         println("$_days-day summary$DKGREY (UTC time)$RESET");
         println();
-        Tile root = new Tile(Tile.Layout.Column, Tile.Margin.Empty);
-        Tile topCharts = new Tile(Tile.Layout.Row, Tile.Margin.Empty);
-        topCharts.append(makePageViews(), new Tile.Margin(0, 0, 0, 4));
+        Tile root = new Tile(layout:Column);
+        Tile topCharts = new Tile(layout:Row);
+        topCharts.append(makePageViews(), new Margin(0, 0, 0, 4));
         topCharts.append(makeClones());
         root.append(topCharts);
         if (_days >= 14) { // bottom chart data applies to past 14 days
-            Tile bottomCharts = new Tile(Tile.Layout.Row, new Tile.Margin(1, 0, 1, 0));
-            bottomCharts.append(makePopularPaths(), new Tile.Margin(0, 0, 0, 4));
+            Tile bottomCharts = new Tile(layout:Row, margin:new Margin(1, 0, 1, 0));
+            bottomCharts.append(makePopularPaths(), new Margin(0, 0, 0, 4));
             bottomCharts.append(makePopularReferrers());
             root.append(bottomCharts);
         }
@@ -206,10 +210,11 @@ public class Traffic {
         }
         StringBuilder sb = new StringBuilder();
         sb.append("$title\n");
-        for (CountedItem item : countedItems) {
+        for (int i = 0; i < countedItems.size(); i++) {
+            CountedItem item = countedItems.get(i);
             //noinspection unchecked
-            String url = urlProcessor.apply((P)item);
-            makePathUrlBar(sb, url, GREY, maxUniques, maxCount, maxUrl, item.getUniques(), item.getCount());
+            String url = urlProcessor.apply((P) item);
+            makePathUrlBar(sb, url, i % 2 == 0 ? GREY : GREY2, maxUniques, maxCount, maxUrl, item.getUniques(), item.getCount());
         }
         return sb.toString();
     }
@@ -271,7 +276,7 @@ public class Traffic {
                 diff--;
             }
             csrDate = timestamp.plusDays(1);
-            String color = timestamp.isEqual(now) ? GREEN : BLUE;
+            String color = timestamp.isEqual(now) ? GREEN : (i % 2 == 0 ? BLUE2 : BLUE);
             int uniquesWidth = (int) Math.ceil((double) item.getUniques() * factor);
             int countWidth = (int) Math.ceil((double) item.getCount() * factor) - uniquesWidth;
             bars.add(DKGREY + '(' + dayMonthFormat.format(timestamp) + ')' + dayOfWeekFormat.format(timestamp) + RESET +
@@ -344,9 +349,9 @@ public class Traffic {
                     gained.add(gazer);
                 }
             }
-            Tile parent = new Tile(Tile.Layout.Row, Tile.Margin.Empty);
+            Tile parent = new Tile(layout:Row);
             if (!gained.isEmpty()) {
-                parent.append(makeGazersList(gained, "New stars", "+", GREEN), new Tile.Margin(0, 0, 0, 2));
+                parent.append(makeGazersList(gained, "New stars", "+", GREEN), new Margin(0, 0, 0, 2));
             }
             if (!lost.isEmpty()) {
                 parent.append(makeGazersList(lost, "Lost stars", "-", RED));

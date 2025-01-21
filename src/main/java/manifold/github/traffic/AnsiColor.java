@@ -43,10 +43,12 @@ public class AnsiColor {
     public static final String RED = FG + "9m";
     public static final String COPPER = FG + "173m";
     public static final String YELLOW = FG + "227m";
-    public static final String GREEN = FG + "36m";
+    public static final String GREEN = FG + "34m";
     public static final String BLUE = FG + "33m";
+    public static final String BLUE2 = FG + "26m";
     public static final String PURPLE = FG + "105m";
     public static final String GREY = FG + "247m";
+    public static final String GREY2 = FG + "249m";
     public static final String DKGREY = FG + "242m";
     public static final String WHITE = FG + "255m";
     public static final String BLACK = FG + "232m";

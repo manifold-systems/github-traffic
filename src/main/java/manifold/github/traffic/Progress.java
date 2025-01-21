@@ -26,6 +26,7 @@ public class Progress {
     public Progress(String msg) {
         _msg = msg;
         _progress = 0;
+        System.out.print("\033[?25l"); // hide cursor while printing
         System.out.print(msg);
     }
 
@@ -41,6 +42,7 @@ public class Progress {
     public void clearProgress() {
         int eraseLen = progressBar().length() + _msg.length();
         System.out.print("\b \b".repeat(eraseLen));
+        System.out.print("\033[?25h"); // show cursor
     }
 
     private String progressBar() {
