@@ -23,7 +23,6 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static manifold.github.traffic.AnsiColor.*;
 import static manifold.github.traffic.Tile.Layout.Column;
 import static manifold.github.traffic.Tile.Layout.Row;
-import static manifold.github.traffic.Tile.Margin.Empty;
 
 /**
  * GitHub traffic CLI utility similar to the GitHub Traffic web page, but with additional features such as
@@ -31,8 +30,7 @@ import static manifold.github.traffic.Tile.Margin.Empty;
  */
 @SuppressWarnings({"StringConcatenationInsideStringBufferAppend", "MalformedFormatString", "unchecked"})
 public class Traffic {
-    private static final String HEAVY_BLOCK = "▓";
-    private static final String LIGHT_BLOCK = "░";
+    private static final String BAR_BLOCK = "■";
 
     private static final int MAX_BAR_LEN = 40;
     private static final int MAX_URL = 38;
@@ -214,12 +212,14 @@ public class Traffic {
             CountedItem item = countedItems.get(i);
             //noinspection unchecked
             String url = urlProcessor.apply((P) item);
-            makePathUrlBar(sb, url, i % 2 == 0 ? GREY : GREY2, maxUniques, maxCount, maxUrl, item.getUniques(), item.getCount());
+            makePathUrlBar(sb, url, GREY, GREY2, maxUniques, maxCount, maxUrl, item.getUniques(), item.getCount());
         }
         return sb.toString();
     }
 
-    private void makePathUrlBar(StringBuilder sb, String url, @SuppressWarnings("SameParameterValue") String color,
+    private void makePathUrlBar(StringBuilder sb, String url,
+                                @SuppressWarnings("SameParameterValue") String color,
+                                @SuppressWarnings("SameParameterValue") String color2,
                                 int maxUniques, int maxCount, int maxUrl, int uniques, int count) {
         url = clipUrl(url, maxUrl);
         int uniquesWidth = String.valueOf(maxUniques).length();
@@ -228,8 +228,8 @@ public class Traffic {
 
         int uniquesBarWidth = (int) (Math.ceil(factorUniques * uniques));
         sb.append(String.format("%${uniquesWidth}d", uniques))
-                .append(color + HEAVY_BLOCK.repeat(uniquesBarWidth)).append(LIGHT_BLOCK.repeat(MAX_UNIQUE_URL_BAR + 1 - uniquesBarWidth))
-                .append(url).append(LIGHT_BLOCK.repeat(maxUrl - url.length() + (int) (Math.ceil(factorCount * count))) + RESET)
+                .append(color + BAR_BLOCK.repeat(uniquesBarWidth)).append(color2 + BAR_BLOCK.repeat(MAX_UNIQUE_URL_BAR + 1 - uniquesBarWidth))
+                .append(color + url).append(color2 + BAR_BLOCK.repeat(maxUrl - url.length() + (int) (Math.ceil(factorCount * count))) + RESET)
                 .append(count).append('\n');
     }
 
@@ -243,7 +243,7 @@ public class Traffic {
         int uniquesWidth = (int) Math.ceil((double) totalUniques * factor / _days);
         int totalCountWidth = (int) Math.ceil((double) totalCount * factor / _days) - uniquesWidth;
         //noinspection StringConcatenationInsideStringBufferAppend
-        sb.append(PURPLE + HEAVY_BLOCK.repeat(uniquesWidth) + LIGHT_BLOCK.repeat(totalCountWidth) + RESET + totalCount +
+        sb.append(PURPLE + BAR_BLOCK.repeat(uniquesWidth) + PURPLE2 + BAR_BLOCK.repeat(totalCountWidth) + RESET + totalCount +
                   " " + DKGREY + ratio.apply(totalUniques, totalCount) + RESET );
         return sb.toString();
     }
@@ -276,12 +276,13 @@ public class Traffic {
                 diff--;
             }
             csrDate = timestamp.plusDays(1);
-            String color = timestamp.isEqual(now) ? GREEN : (i % 2 == 0 ? BLUE2 : BLUE);
+            String color = timestamp.isEqual(now) ? GREEN : BLUE;
+            String color2 = timestamp.isEqual(now) ? GREEN2 : BLUE2;
             int uniquesWidth = (int) Math.ceil((double) item.getUniques() * factor);
             int countWidth = (int) Math.ceil((double) item.getCount() * factor) - uniquesWidth;
             bars.add(DKGREY + '(' + dayMonthFormat.format(timestamp) + ')' + dayOfWeekFormat.format(timestamp) + RESET +
                     String.format("%${width}d", item.getUniques()) +
-                    color + HEAVY_BLOCK.repeat(uniquesWidth) + LIGHT_BLOCK.repeat(countWidth) + RESET +
+                    color + BAR_BLOCK.repeat(uniquesWidth) + color2 + BAR_BLOCK.repeat(countWidth) + RESET +
                     item.getCount() + " " + DKGREY + showRatio.apply(item.getUniques(), item.getCount()) + RESET + "\n");
         }
         while (csrDate.isBefore(now) || csrDate.isEqual(now)) {
