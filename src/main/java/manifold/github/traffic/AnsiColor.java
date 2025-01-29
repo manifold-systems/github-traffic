@@ -40,10 +40,10 @@ public class AnsiColor {
     private static final String BG = "\u001B[48;5;";
 
     // Foreground color codes
-    public static final String RED = FG + "9m";
+    public static final String RED = FG + "203m";
     public static final String COPPER = FG + "173m";
     public static final String YELLOW = FG + "227m";
-    public static final String GREEN = FG + "34m";
+    public static final String GREEN = FG + "36m";
     public static final String GREEN2 = FG + "29m";
     public static final String BLUE = FG + "33m";
     public static final String BLUE2 = FG + "26m";
