@@ -4,6 +4,11 @@ Use this command line interface (CLI) tool to produce a textual GitHub traffic r
 similar in format to GitHub's Traffic page, but includes additional features such as star diffs between usages, who
 starred/unstarred the repo, and unique view ratio per top views. See the example below.
 
+# Development
+
+This is a Java language project. While you can use the development tools of your choice, this project uses [manifold](https://github.com/manifold-systems/manifold),
+therefore it is best to develop this project in IntelliJ IDEA with the [manifold plugin](https://plugins.jetbrains.com/plugin/10057-manifold/edit) enabled.
+
 # Build
   
 ### Requirements
